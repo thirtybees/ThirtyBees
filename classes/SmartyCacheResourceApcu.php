@@ -60,7 +60,12 @@ class Smarty_CacheResource_Apcu extends Smarty_CacheResource_KeyValueStore
      */
     protected function read(array $keys)
     {
-        return apcu_fetch($keys);
+        $results = [];
+        foreach ($keys as $key) {
+            $results[$key] = apcu_fetch($key);
+        }
+
+        return $results;
     }
 
     /**
@@ -73,7 +78,13 @@ class Smarty_CacheResource_Apcu extends Smarty_CacheResource_KeyValueStore
      */
     protected function write(array $keys, $expire = null)
     {
-        return apcu_store($keys, null, $expire);
+        $success = true;
+
+        foreach ($keys as $key => $value) {
+            $success &= apcu_store($keys, $value, $expire);
+        }
+
+        return $success;
     }
 
     /**
@@ -85,8 +96,9 @@ class Smarty_CacheResource_Apcu extends Smarty_CacheResource_KeyValueStore
      */
     protected function delete(array $keys)
     {
-        foreach ($keys as $k) {
-            apcu_delete($k);
+        $result = apcu_delete($keys);
+        if (is_array($result)) {
+            return false;
         }
 
         return true;
