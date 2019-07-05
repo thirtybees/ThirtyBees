@@ -66,6 +66,7 @@ $_TB_DEFAULT_MODULES_ = [
     'socialsharing',
     'statsdata',
     'statsmodule',
+    'tbhtmlblock',
     'tbupdater',
     'themeconfigurator',
 ];
