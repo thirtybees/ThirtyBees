@@ -797,7 +797,7 @@ class ValidateCore
      */
     public static function isPhoneNumber($number)
     {
-        return (bool) preg_match('/^[+0-9. ()-]+$/', $number);
+        return (bool) preg_match('/^[+0-9. \t\n\r()-]+$/', $number);
     }
 
     /**

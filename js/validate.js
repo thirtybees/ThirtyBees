@@ -159,7 +159,7 @@ function validate_isMessage(s)
 
 function validate_isPhoneNumber(s)
 {
-	var reg = /^[+0-9. ()-]+$/;
+	var reg = /^[+0-9. \t\n\r()-]+$/;
 	return reg.test(s);
 }
 
