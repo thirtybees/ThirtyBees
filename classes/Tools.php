@@ -3391,6 +3391,9 @@ class ToolsCore
 	<FilesMatch \"\.(ttf|ttc|otf|eot|woff|woff2|svg)$\">
 		Header set Access-Control-Allow-Origin \"*\"
 	</FilesMatch>
+	Header set Cache-Control \"no-cache, no-store, must-revalidate\"
+	Header set Pragma \"no-cache\"
+	Header set Expires 0
 </IfModule>\n\n"
         );
 
