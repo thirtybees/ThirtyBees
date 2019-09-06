@@ -2897,6 +2897,19 @@ class AdminProductsControllerCore extends AdminController
                     $product->deleteDefaultAttributes();
                 }
 
+                $attribute_reference = Tools::getValue('attribute_reference');
+                // If product attribute reference number is not empty, we use it;
+                // otherwise we generate a unique number.
+                if (Tools::isEmpty($attribute_reference)) {
+                    $productRef = $product->reference;
+                    // If product has no reference number,
+                    // we use its ID to generate product attribute reference number.
+                    if (Tools::isEmpty($productRef)) {
+                        $productRef = $product->id;
+                    }
+                    $attribute_reference = $this->nextAvailableReference($productRef);
+                }
+
                 // Change existing one
                 if (($idProductAttribute = (int) Tools::getValue('id_product_attribute')) || ($idProductAttribute = $product->productAttributeExists(Tools::getValue('attribute_combination_list'), false, null, true, true))) {
                     if ($this->tabAccess['edit'] === '1') {
@@ -2911,7 +2924,7 @@ class AdminProductsControllerCore extends AdminController
                                 $this->isProductFieldUpdated('attribute_unit_impact') ? Tools::getValue('attribute_unity') * Tools::getValue('attribute_unit_impact') : null,
                                 $this->isProductFieldUpdated('attribute_ecotax') ? priceval(Tools::getValue('attribute_ecotax')) : null,
                                 Tools::getValue('id_image_attr'),
-                                Tools::getValue('attribute_reference'),
+                                $attribute_reference,
                                 Tools::getValue('attribute_ean13'),
                                 $this->isProductFieldUpdated('attribute_default') ? Tools::getValue('attribute_default') : null,
                                 Tools::getValue('attribute_location'),
@@ -2941,7 +2954,7 @@ class AdminProductsControllerCore extends AdminController
                                 priceval(Tools::getValue('attribute_ecotax')),
                                 0,
                                 Tools::getValue('id_image_attr'),
-                                Tools::getValue('attribute_reference'),
+                                $attribute_reference,
                                 null,
                                 Tools::getValue('attribute_ean13'),
                                 Tools::getValue('attribute_default'),
@@ -2983,6 +2996,57 @@ class AdminProductsControllerCore extends AdminController
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Returns next available reference for a product attribute
+     *
+     * Uses the following format for the reference: {$base_reference}_{$next_available_number}
+     *     and checks whether generated reference number is used for any product or product attribute.
+     * Makes 1000 iterations to generate the $next_available_number, uses time()
+     *     if generated reference is still not unique.
+     * 
+     * @since 1.1.x
+     */
+    private function nextAvailableReference($base_reference) {
+
+        $productRefs = Db::getInstance()->ExecuteS('
+    		SELECT p.`reference`
+    		FROM `'._DB_PREFIX_.'product` p
+    		WHERE p.`reference` LIKE \''.$base_reference.'%\'');
+        $prMapped = array_map(function ($row) {
+            return $row['reference'];
+        }, $productRefs);
+
+        $productAttrRefs = Db::getInstance()->ExecuteS('
+    		SELECT pa.`reference`
+    		FROM `'._DB_PREFIX_.'product_attribute` pa
+    		WHERE pa.`reference` LIKE \''.$base_reference.'%\'');
+        $praMapped = array_map(function ($row) {
+            return $row['reference'];
+        }, $productAttrRefs);
+
+        $allRefs = array_merge($prMapped, $praMapped);
+        $startNextRefFrom = max(count($productRefs), count($productAttrRefs));
+        $iterations = 0;
+        $refCandidate = null;
+
+        while ($iterations++ < 1000) {
+
+            $refCandidate = $base_reference . '_' . $startNextRefFrom;
+
+            if (!in_array($refCandidate, $allRefs)) {
+                break;
+            } else {
+                $startNextRefFrom++;
+            }
+        }
+
+        if (!Tools::isEmpty($refCandidate)) {
+            return $refCandidate;
+        } else {
+            return $base_reference . '_' . time();
         }
     }
 
