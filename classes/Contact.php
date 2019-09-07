@@ -78,12 +78,13 @@ class ContactCore extends ObjectModel
      * Return available contacts
      *
      * @param int $idLang Language ID
+     * @param bool $onlyActive Whether to get only active contacts
      *
      * @return array Contacts
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
-    public static function getContacts($idLang)
+    public static function getContacts($idLang, $onlyActive = false)
     {
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             (new DbQuery())
@@ -92,6 +93,7 @@ class ContactCore extends ObjectModel
                 ->join(Shop::addSqlAssociation('contact', 'c', false))
                 ->leftJoin('contact_lang', 'cl', 'c.`id_contact` = cl.`id_contact` AND cl.`id_lang` = '.(int) $idLang)
                 ->where('contact_shop.`id_shop` IN ('.implode(', ', array_map('intval', Shop::getContextListShopID())).')')
+                ->where(($onlyActive ? 'active = true' : '1'))
                 ->groupBy('c.`id_contact`')
                 ->orderBy('`name` ASC')
         );
