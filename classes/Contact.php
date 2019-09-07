@@ -46,6 +46,8 @@ class ContactCore extends ObjectModel
     public $description;
     public $customer_service;
     public $position;
+    /** @var bool Active */
+    public $active;
     // @codingStandardsIgnoreEnd
 
     /**
@@ -63,6 +65,7 @@ class ContactCore extends ObjectModel
             /* Lang fields */
             'name'             => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isGenericName', 'required' => true, 'size' => 32],
             'description'      => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isCleanHtml', 'size' => ObjectModel::SIZE_TEXT],
+            'active'           => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'dbDefault' => '1'],
         ],
         'keys' => [
             'contact_shop' => [
